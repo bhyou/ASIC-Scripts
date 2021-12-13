@@ -1,7 +1,5 @@
 # Synopsys VCSMX Makefile
 
-[toc]
-
 The Makefile works on two separate flows. The DEBUG flow is intended to be used 
 During debugging of a testcase and/or the DUT. The REGRESSION flow is used 
 During regression runs and collects coverage data. 
