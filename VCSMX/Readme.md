@@ -6,10 +6,11 @@ During regression runs and collects coverage data.
 
   - The **DEBUG flow** turns on VPD dumping and turns off coverage collection. After building a testcase using the debug targets, you can debug the TB and the DUT source code using the testbench debugger and DVE. Of course, you can turn on coverage metrics and run in debug mode by changing compile and runtime options in the makefile. These changes are independent of the regression flow so that the regressions will still run optimally without the interference of VPD dumping. 
 
-  - The **REGRESSION flow** turns off VPD dumping and turns on Coverage Metrics and TB 
-   coverage collection. This flow is intended to support verification engineers who 
-   are working through the regression process and are interested in coverage collection and urg. 
+  - The **REGRESSION flow** turns off VPD dumping and turns on Coverage Metrics and TB  coverage collection. This flow is intended to support verification engineers who are working through the regression process and are interested in coverage collection and urg. 
 
+该Makefile包含**Debug**和**Regression**两个流程。Debug流程用于调试和查错； Regression流程则用于覆盖率收集(即是检查验证是否充分)。
+  - Debug流程中，存储VPD波形，不进行覆盖率收集。 编译目标testcase后，可以使用DVE调试Testbench和DUT源代码。
+  - Regressionl流程中，不存储VPD波形，进行覆盖率收集。
 
 ## **Command Line**
 --------------------------------------------------------

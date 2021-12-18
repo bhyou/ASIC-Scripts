@@ -21,41 +21,81 @@
 
 default: help
 
-
 waveFormat ?= vpd
 topDesign  ?= top_tb
 comLog     ?= compile.log
 simLog     ?= sim_tb.log
  
-UseFileList?= yes
+vhdlFileList ?= yes; # vhdllist.f should be provided
+vlogFileList ?= yes; # vloglist.f should be provided
 
-# UseFileList ?= no
-# FILES += not_gate.v
-# FILES += not_gate_tb.v
+#vhdlFileList ?= no
+#VHDL_DUT_SRC += ../hdl/not_gate.vhd
+#VHDL_TB_SRC  += ../bench/not_gate_tb.vhdl
 
-# coverage options
-coverOpt += -cm line+cond+tgl+fsm+branch+assert
+#vlogFileList ?= no
+#VLOG_DUT_SRC += ../hdl/not_gate.v
+#VLOG_TB_SRC  += ../bench/not_gate_tb.sv
 
-# interactive simulation on verdi and vcs
-comOpts += -lca -kdb
 
-comOpts += -full64 -sverilog +v2k -l ${comLog}
-comOpts += -override_timescale=1ns/1ps
-comOpts += -debug_access+r
+VLOG_CMP_ARGS += -override_timescale=1ns/1ps
+#VLOG_CMP_ARGS += +define+Tdelay=200
+#VLOG_CMP_ARGS += +incdir+../rtl/include
+#VLOG_CMP_ARGS += -y <verilog library directory path> +libext++.v
 
-#macroOpt += +define+Tdelay=200
-#macroOpt += +incdir+../rtl/include
+# Get absolute path of current makefile
+#CURPATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 
-ifeq ($(waveFormat),vpd)
-	macroOpt += +define+VPD
-else
-	macroOpt += +define+fsdb
-	comOpt += -fsdb
+# Get relative path of current makefile
+#CURDIR := $(dir $(lastword $(MAKEFILE_LIST)))
+
+#Convert relative path strength to absolute path
+#$(eval PRJDIR := $(abspath $(CURDIR)))
+
+#####################################################################################
+# No need to modify anything below
+#####################################################################################
+#================================================
+# *_CMP_ARGS: means compile-time options
+#================================================
+COV_CMP_ARGS += -cm line+cond+tgl+fsm+branch+assert 
+
+ARCH_ARGS += -full64 
+
+VLOG_CMP_ARGS += +v2k
+VLOG_CMP_ARGS += -sverilog 
+VLOG_CMP_ARGS += -l ${comLog}
+ELAB_CMP_ARGS += -debug_access+all
+#================================================
+# *_RUN_ARGS: means Run-time options
+#================================================
+COV_RUN_ARGS += -cm line+cond+tgl+fsm+branch+assert 
+
+#INFO_RUN_ARGS += -a <filename>; # specifies appending all messags
+
+#VERDI_RUN_ARGS += -gui=verdi
+#VERDI_RUN_ARGS += -verdi
+#VERDI_RUN_ARGS += -verdi_opts
+
+#VCD_RUN_ARGS += -vcd <filename>; # sets the output VCD file name
+
+ifeq ($(waveFormat),fsdb)
+	VLOG_CMP_ARGS += +define+fsdb
+	FSDB_CMP_ARGS += -fsdb -kdb
 endif
 
-ifeq (${UseFileList}, yes)
-	FILES = -file $(filelist)
-	filelist = vloglist.f
+ifeq (${vhdlFileList}, yes)
+	VHDL_FILES = -file vhdllist.f
+else
+	VHDL_FILES += VHDL_DUT_SRC
+	VHDL_FILES += VHDL_TB_SRC 	
+endif
+
+ifeq (${vlogFileList}, yes)
+	VLOG_FILES = -file vloglist.f
+else
+	VLOG_FILES += VLOG_DUT_SRC
+	VLOG_FILES += VLOG_TB_SRC 	
 endif
 
 help: 
@@ -95,26 +135,27 @@ ifneq ($(wildcard ../*/*.vhd),)
 	@find .. -name  "*.vhd" > vhdllist.f 
 endif
 
-vlogcom:
-	vcs $(comOpt) $(macroOpt) $(FILES)
+vlogcom: 
+	vcs $(ARCH_ARGS) $(VLOG_CMP_ARGS) $(ELAB_CMP_ARGS) \
+		 $(COV_CMP_ARGS) $(VLOG_FILES)
  
-vhdlcom: vhdllist.f
-	vhdlan -full64 -nc -f vhdllist.f
-	vcs -full64 -debug_pp -l ${comLog} -top ${topDesign}
+vhdlcom: 
+	vhdlan $(ARCH_ARGS) -nc $(VHDL_FILES)
+	vcs $(ARCH_ARGS) $(ELAB_CMP_ARGS) -l ${comLog} -top ${topDesign}
 
-mixcom: vhdllist.f vloglist.f
-	vhdlan -fulll64 -nc vhdlist.f
-	vlogan -full64 +v2k -sverilog +define+syn_off vloglist.f 
-	vcs -full64 -debug_pp -top $(topDesign) -l elab.log $(comOpt)
+mixcom: 
+	vhdlan $(ARCH_ARGS) -nc $(VHDL_FILES)
+	vlogan $(ARCH_ARGS) -nc $(VLOG_CMP_ARGS) $(VLOG_FILES) 
+	vcs $(ARCH_ARGS) $(ELAB_CMP_ARGS) -top $(topDesign) -l elab.log $(comOpt)
 
 guiDve: simv 
 	@./simv -l $(simLog) -gui & 
 
 guiVerdi: simv
-	@./simv $(simOpt) -gui=verdi &
+	@./simv -l $(simLog) -gui=verdi &
  
 dveCov: simv
-	@./simv $(simOpt) $(coverOpt) &
+	@./simv -l $(simLog) $(COV_RUN_ARGS) &
 
 viewCov: simv.vdb
 	dve -full64 -covdir simv.vdb 
