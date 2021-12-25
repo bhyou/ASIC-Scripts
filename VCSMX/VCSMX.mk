@@ -17,17 +17,17 @@
 #        VCS not supports vhdl compile.
 ########################################################################
 
-.PHONY:default help clean file vlogcom vhdlan mixecom 
+.PHONY:default help clean file vlogcom vhdlcom mixecom 
 
 default: help
 
-waveFormat ?= vpd
-topDesign  ?= top_tb
-comLog     ?= compile.log
-simLog     ?= sim_tb.log
+waveFormat = vpd
+topDesign  = top_tb
+comLog     = compile.log
+simLog     = sim_tb.log
  
-vhdlFileList ?= yes; # vhdllist.f should be provided
-vlogFileList ?= yes; # vloglist.f should be provided
+vhdlFileList = yes; # vhdllist.f should be provided
+vlogFileList = yes; # vloglist.f should be provided
 
 #vhdlFileList ?= no
 #VHDL_DUT_SRC += ../hdl/not_gate.vhd
@@ -79,25 +79,42 @@ COV_RUN_ARGS += -cm line+cond+tgl+fsm+branch+assert
 
 #VCD_RUN_ARGS += -vcd <filename>; # sets the output VCD file name
 
-ifeq ($(waveFormat),fsdb)
-	VLOG_CMP_ARGS += +define+fsdb
-	FSDB_CMP_ARGS += -fsdb -kdb
+ifeq ($(waveFormat),fsdb) 
+  VLOG_CMP_ARGS += +define+fsdb
+  FSDB_CMP_ARGS += -fsdb -kdb
 endif
 
-ifeq (${vhdlFileList}, yes)
-	VHDL_FILES = -file vhdllist.f
+ifeq ($(vhdlFileList),yes) 
+  VHDL_FILES := -f vhdllist.f
 else
-	VHDL_FILES += VHDL_DUT_SRC
-	VHDL_FILES += VHDL_TB_SRC 	
+  VHDL_FILES += $(VHDL_DUT_SRC)
+  VHDL_FILES += $(VHDL_TB_SRC) 	
 endif
 
-ifeq (${vlogFileList}, yes)
-	VLOG_FILES = -file vloglist.f
+ifeq ($(vlogFileList),yes)
+  VLOG_FILES := -f vloglist.f
 else
-	VLOG_FILES += VLOG_DUT_SRC
-	VLOG_FILES += VLOG_TB_SRC 	
+  VLOG_FILES += $(VLOG_DUT_SRC)
+  VLOG_FILES += $(VLOG_TB_SRC) 	
 endif
 
+usage:
+	@echo  "====================================================================== "
+	@echo  "print the following info about how to use:"
+	@echo  "====================================================================== "
+
+var:
+	@echo  "====================================================================== "
+	@echo   "        " 
+	@echo   " variable print:              " 
+	@echo   " VHDL_DUT_SRC => list of vhdl source files      " 
+	@echo   " VHDL_TB_SRC  => list of vhdl testbench files      " 
+	@echo   " VLOG_DUT_SRC => list of verilog or SV source files       " 
+	@echo   " VLOG_TB_SRC  => list of verilog or SV testbench files        " 
+	@echo   " vlogFileList => whether enable vloglist.f       " 
+	@echo   " vhdlFileList => whether enable vhdllist.f       " 
+	@echo "======================================================================="
+	
 help: 
 	@echo ======================================================================= 
 	@echo   "        " 
@@ -136,10 +153,13 @@ ifneq ($(wildcard ../*/*.vhd),)
 endif
 
 vlogcom: 
+	@echo "$(VLOG_FILES)"
 	vcs $(ARCH_ARGS) $(VLOG_CMP_ARGS) $(ELAB_CMP_ARGS) \
 		 $(COV_CMP_ARGS) $(VLOG_FILES)
  
-vhdlcom: 
+vhdlcom:  
+	@echo "$(vhdlFileList)"
+	@echo $(VHDL_FILES)
 	vhdlan $(ARCH_ARGS) -nc $(VHDL_FILES)
 	vcs $(ARCH_ARGS) $(ELAB_CMP_ARGS) -l ${comLog} -top ${topDesign}
 

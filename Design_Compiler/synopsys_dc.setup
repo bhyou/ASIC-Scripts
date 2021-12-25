@@ -1,0 +1,42 @@
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Logical Library Setup
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#lappend search_path /home/Frylib/GSMCR130/SITRI_GSMC_R013S7G0/GSMC13/FEView_STDIO/STD/Synopsys/
+#lappend search_path /home/Frylib/GSMCR130/SITRI_GSMC_R013S7G0/GSMC13/FEView_STDIO/IO/Synopsys/
+##lappend search_path /EDAtools/Synopsys/design_vision/syn_2018.06/libraries/syn/class.db
+#lappend search_path ./scripts
+#
+#set command_log_file    ./logs/command.log
+#set sh_command_log_file ./logs/command.log
+#
+#set cache_write ./dc_dw_cache
+#set cache_read $cache_write
+#
+#set synthetic_library {dw_foundation.sldb}
+#
+#set target_library "gsmc13_tt_1p2v_25c.db"
+##set link_library "* gsmc13_tt_1p2v_25c.db $synthetic_library class.db"
+#set link_library "* gsmc13_tt_1p2v_25c.db $synthetic_library gsmc13iov33_line_tt_1p2v_3p3v_25c.db"
+#
+define_design_lib DEFAULT -path analyzed
+
+suppress_message "VHDL-2285 PSYN-040 PSYN-088"
+suppress_message "CMD-041 UID-401 OPT-170"
+
+echo "\n\nSettings:"
+echo "link_library:      $link_library"
+echo "target_library:    $target_library"
+echo "search_path:       $search_path\n\n"
+
+set verilogout_no_tri true
+set sh_enable_line_editing true
+
+#for coverage estimate and downstream tools
+set test_default_delay 0
+set test_default_bidir_delay $test_default_delay
+
+
+
+echo "\nI am ready...\n\n\n"
+
+
