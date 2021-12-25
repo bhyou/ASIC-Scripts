@@ -6,5 +6,5 @@
   - set the `link_library`
 
 ```
-$ cp synopsys_dc.setup  <path to design compiler start directory>/.synopsys_dc.setup
+$ cp synopsys_dc.setup  <path to directory where design compiler is started >/.synopsys_dc.setup
 ```
